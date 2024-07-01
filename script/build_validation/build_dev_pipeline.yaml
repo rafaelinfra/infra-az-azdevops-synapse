@@ -1,0 +1,33 @@
+# Pipeline de implantação de artefatos do Data Factory
+
+# Este pipeline dispara apenas manualmente ou através de chamadas API REST (Processo de integração com ITSM)
+
+variables:
+  - group: "<<GRUPO DE VARIAVEIS>>"
+
+trigger: none
+
+pool: Azure Pipelines
+
+
+stages:
+  - stage: Valida
+    displayName: Azure Synapse Build Validation
+    jobs:
+      - deployment: 
+        displayName: Valida
+        environment: "<<ENVIRONMENT>>"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - checkout: self
+                persistCredentials: true
+                clean: true
+
+              - task: PowerShell@2
+                displayName: 'Valida'
+                name: valida
+                inputs:
+                  FilePath: '$(System.DefaultWorkingDirectory)/script/build_validation/build_dev.ps1'
+                  arguments: '-ADOFilesPath $(System.DefaultWorkingDirectory) -commit $(Build.SourceVersion) -pat $(System.AccessToken)'

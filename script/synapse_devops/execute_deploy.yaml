@@ -1,0 +1,46 @@
+trigger:
+  branches:
+    include:
+      - main
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - sqlscript/*
+jobs:
+- job: IdentifyChanges
+  displayName: Deploy Synapse e Banco
+  pool:
+    vmImage: 'windows-latest'
+  variables:
+  - group: "<<GRUPO DE VARIAVEIS>>"
+  steps:
+  - task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
+    displayName: 'Synapse deployment task for workspace: dev'
+    inputs:
+      operation: validateDeploy
+      ArtifactsFolder: '$(System.DefaultWorkingDirectory)'
+      azureSubscription: '<<SERVICE CONNECTION>>'
+      ResourceGroupName: '<<GRUPO DE RECURSO>>'
+      TargetWorkspaceName: <<SYNAPSENAME>>
+  - task: AzureSynapseWorkspace.synapsecicd-deploy.synapse-deploy.Synapse workspace deployment@2
+    displayName: 'Synapse deployment task for workspace: prd'
+    inputs:
+      operation: validateDeploy
+      ArtifactsFolder: '$(System.DefaultWorkingDirectory)'
+      azureSubscription: '<<SERVICE CONNECTION>>'
+      ResourceGroupName: '<<GRUPO DE RECURSO>>'
+      TargetWorkspaceName: <<SYNAPSENAME>>
+  - task: AzurePowerShell@5
+    inputs:
+      azureSubscription: '<<SERVICE CONNECTION>>'
+      scriptType: filePath
+      scriptPath: $(Build.SourcesDirectory)\script\synapse_devops\take_queries.ps1
+      azurePowerShellVersion: latestVersion
+      scriptArguments: -pat $(System.AccessToken) -buildsourceversion $(Build.SourceVersion)
+    env:
+      clientid: $(<<CLIENTID>>)
+      tenantid: $(<<TENANT>>)
+      secret: $(<<SECRETID>>)

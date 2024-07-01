@@ -1,1 +1,1 @@
-# infra-az-azdevops-synapse
+Initialized by Azure Synapse Analytics! 
